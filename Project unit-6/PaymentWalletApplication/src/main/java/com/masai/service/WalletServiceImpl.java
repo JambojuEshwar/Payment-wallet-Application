@@ -174,7 +174,6 @@ public class WalletServiceImpl implements WalletService{
 		wallet.setBalance(wallet.getBalance() + amount);
 
 		bankDao.save(bankAccount);
-		walletDao.save(wallet);
 
 		Transaction transaction = new Transaction();
 		transaction.setTransactionType("BankToWallet");
@@ -189,6 +188,7 @@ public class WalletServiceImpl implements WalletService{
 		wallet.getTransactions().add(transaction);
 
 		transactionDao.save(transaction);
+		walletDao.save(wallet);
 
 		return amount + " Rupee is Credited into Wallet";
 	}
@@ -250,7 +250,6 @@ public class WalletServiceImpl implements WalletService{
 		wallet.setBalance(wallet.getBalance() - amount);
 
 		bankDao.save(bankAccount);
-		walletDao.save(wallet);
 
 		Transaction transaction = new Transaction();
 		transaction.setTransactionType("WalletToBank");
@@ -265,6 +264,7 @@ public class WalletServiceImpl implements WalletService{
 		wallet.getTransactions().add(transaction);
 
 		transactionDao.save(transaction);
+		walletDao.save(wallet);
 
 		return amount + " Rupee is Credited into Bank";
 	}

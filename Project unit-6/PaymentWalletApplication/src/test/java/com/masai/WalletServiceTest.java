@@ -337,4 +337,32 @@ class WalletServiceTest {
 		when(userSessionsImpl.getCustomerWallet(invalidKey)).thenThrow(new UserNotFoundException("Unauthorized key"));
 		assertThrows(UserNotFoundException.class, () -> walletService.fundTransfer(sourceMobile, targetMobile, 100.0, invalidKey));
 	}
+
+	@Test
+	void testFundTransfer_FailedTransferRollsBack_NeitherWalletSaved() {
+		userWallet.setBalance(100.0);
+
+		Wallet targetWallet = new Wallet();
+		targetWallet.setWalletId(2);
+		targetWallet.setBalance(500.0);
+
+		Customer targetCustomer = new Customer();
+		targetCustomer.setCustomerId(102);
+		targetCustomer.setName("Priya Verma");
+		targetCustomer.setMobileNumber(targetMobile);
+		targetCustomer.setWallet(targetWallet);
+
+		when(userSessionsImpl.getCustomerWallet(validKey)).thenReturn(userWallet);
+		when(userSessionsImpl.getCustomer(validKey)).thenReturn(sourceCustomer);
+		when(customerDao.findByMobileNumber(targetMobile)).thenReturn(Optional.of(targetCustomer));
+
+		// Transfer amount exceeds balance: 500 > 100
+		assertThrows(InsuficientBalance.class, () -> walletService.fundTransfer(sourceMobile, targetMobile, 500.0, validKey));
+
+		// Verify neither wallet was saved and balances are untouched
+		assertEquals(100.0, userWallet.getBalance());
+		assertEquals(500.0, targetWallet.getBalance());
+		verify(walletDao, never()).save(any(Wallet.class));
+		verify(transactionDao, never()).save(any(Transaction.class));
+	}
 }

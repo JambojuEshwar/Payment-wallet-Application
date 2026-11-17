@@ -26,7 +26,7 @@ public class BeneficiaryDetails {
 	@Pattern(regexp = "[a-zA-Z0-9]{1,100}", message = "Name can't be Empty")
 	private String name;
 	
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne
 	private Wallet wallet;
 	
 }
