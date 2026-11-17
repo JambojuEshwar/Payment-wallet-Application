@@ -54,6 +54,10 @@ public class WalletServiceImpl implements WalletService{
 			throw new InvalidDetailsException("Amount must be greater than zero");
 		}
 
+		if (key == null || key.trim().isEmpty()) {
+			throw new InvalidDetailsException("Session key cannot be null or blank");
+		}
+
 		if (sourceMobileNo == null || targetMobileNo == null || sourceMobileNo.equals(targetMobileNo)) {
 			throw new InvalidDetailsException("Source and target mobile numbers cannot be the same");
 		}
@@ -123,12 +127,16 @@ public class WalletServiceImpl implements WalletService{
 	
 	@Override
 	public double showBalance(String key) {
-		
-		double balance = userSessionsImpl.getCustomerWallet(key).getBalance();
-		
-		
-			return balance;
-		
+		if (key == null || key.trim().isEmpty()) {
+			throw new InvalidDetailsException("Session key cannot be null or blank");
+		}
+
+		Wallet wallet = userSessionsImpl.getCustomerWallet(key);
+		if (wallet == null) {
+			throw new WalletNotFound("Wallet does not exist");
+		}
+
+		return wallet.getBalance();
 	}
 
 
@@ -139,7 +147,14 @@ public class WalletServiceImpl implements WalletService{
 			throw new InvalidDetailsException("Amount must be greater than zero");
 		}
 
+		if (key == null || key.trim().isEmpty()) {
+			throw new InvalidDetailsException("Session key cannot be null or blank");
+		}
+
 		Wallet wallet = userSessionsImpl.getCustomerWallet(key);
+		if (wallet == null) {
+			throw new WalletNotFound("Wallet does not exist");
+		}
 
 		Optional<BankAccount> optBank = bankDao.findByAccountNo(Accno);
 		if (!optBank.isPresent()) {
@@ -208,7 +223,14 @@ public class WalletServiceImpl implements WalletService{
 			throw new InvalidDetailsException("Amount must be greater than zero");
 		}
 
+		if (key == null || key.trim().isEmpty()) {
+			throw new InvalidDetailsException("Session key cannot be null or blank");
+		}
+
 		Wallet wallet = userSessionsImpl.getCustomerWallet(key);
+		if (wallet == null) {
+			throw new WalletNotFound("Wallet does not exist");
+		}
 
 		Optional<BankAccount> optBank = bankDao.findByAccountNo(Accno);
 		if (!optBank.isPresent()) {
@@ -249,9 +271,16 @@ public class WalletServiceImpl implements WalletService{
 
 	@Override
 	public Customer getCustomerbyWalletId(Integer wlletId) {
-		
-		Wallet wallet = walletDao.getById(wlletId);
+		if (wlletId == null) {
+			throw new WalletNotFound("Wallet id cannot be null");
+		}
 
+		Optional<Wallet> walletOpt = walletDao.findById(wlletId);
+		if (!walletOpt.isPresent()) {
+			throw new WalletNotFound("Wallet does not exist with id: " + wlletId);
+		}
+
+		Wallet wallet = walletOpt.get();
 		Customer customer = wallet.getCustomer();
 		
 		return customer;

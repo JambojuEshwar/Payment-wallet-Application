@@ -19,6 +19,7 @@ import com.masai.entities.Wallet;
 import com.masai.exception.BankAccountNotFound;
 import com.masai.exception.InsuficientBalance;
 import com.masai.exception.InvalidDetailsException;
+import com.masai.exception.UserNotFoundException;
 import com.masai.exception.WalletNotFound;
 import com.masai.repository.BankAccountDao;
 import com.masai.repository.CustomerDao;
@@ -283,5 +284,57 @@ class WalletServiceTest {
 		verify(transactionDao, times(2)).save(any(Transaction.class));
 		verify(walletDao).save(userWallet);
 		verify(walletDao).save(targetWallet);
+	}
+
+	@Test
+	void testShowBalance_MissingOrBlankSessionKey() {
+		assertThrows(InvalidDetailsException.class, () -> walletService.showBalance(null));
+		assertThrows(InvalidDetailsException.class, () -> walletService.showBalance("   "));
+	}
+
+	@Test
+	void testShowBalance_InvalidSessionKey() {
+		String invalidKey = "invalidKey";
+		when(userSessionsImpl.getCustomerWallet(invalidKey)).thenThrow(new UserNotFoundException("Unauthorized key"));
+		assertThrows(UserNotFoundException.class, () -> walletService.showBalance(invalidKey));
+	}
+
+	@Test
+	void testAddMoney_MissingOrBlankSessionKey() {
+		assertThrows(InvalidDetailsException.class, () -> walletService.addMoney(100.0, null, 123456));
+		assertThrows(InvalidDetailsException.class, () -> walletService.addMoney(100.0, "   ", 123456));
+	}
+
+	@Test
+	void testAddMoney_InvalidSessionKey() {
+		String invalidKey = "invalidKey";
+		when(userSessionsImpl.getCustomerWallet(invalidKey)).thenThrow(new UserNotFoundException("Unauthorized key"));
+		assertThrows(UserNotFoundException.class, () -> walletService.addMoney(100.0, invalidKey, 123456));
+	}
+
+	@Test
+	void testDepositAmount_MissingOrBlankSessionKey() {
+		assertThrows(InvalidDetailsException.class, () -> walletService.depositAmount(100.0, null, 123456));
+		assertThrows(InvalidDetailsException.class, () -> walletService.depositAmount(100.0, "   ", 123456));
+	}
+
+	@Test
+	void testDepositAmount_InvalidSessionKey() {
+		String invalidKey = "invalidKey";
+		when(userSessionsImpl.getCustomerWallet(invalidKey)).thenThrow(new UserNotFoundException("Unauthorized key"));
+		assertThrows(UserNotFoundException.class, () -> walletService.depositAmount(100.0, invalidKey, 123456));
+	}
+
+	@Test
+	void testFundTransfer_MissingOrBlankSessionKey() {
+		assertThrows(InvalidDetailsException.class, () -> walletService.fundTransfer(sourceMobile, targetMobile, 100.0, null));
+		assertThrows(InvalidDetailsException.class, () -> walletService.fundTransfer(sourceMobile, targetMobile, 100.0, "   "));
+	}
+
+	@Test
+	void testFundTransfer_InvalidSessionKey() {
+		String invalidKey = "invalidKey";
+		when(userSessionsImpl.getCustomerWallet(invalidKey)).thenThrow(new UserNotFoundException("Unauthorized key"));
+		assertThrows(UserNotFoundException.class, () -> walletService.fundTransfer(sourceMobile, targetMobile, 100.0, invalidKey));
 	}
 }
