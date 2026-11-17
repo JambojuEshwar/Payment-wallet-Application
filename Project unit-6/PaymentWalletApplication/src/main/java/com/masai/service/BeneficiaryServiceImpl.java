@@ -33,6 +33,10 @@ public class BeneficiaryServiceImpl implements BeneficiaryService {
             throw new BeneficiaryException("Invalid beneficiary details");
         }
 
+        if (bd.getName() == null || bd.getName().isBlank()) {
+            throw new BeneficiaryException("Name can't be Empty");
+        }
+
         if (bDao.existsById(bd.getMobileNumber())) {
             throw new BeneficiaryException("Beneficiary already exists");
         }
@@ -45,12 +49,17 @@ public class BeneficiaryServiceImpl implements BeneficiaryService {
                 .orElseThrow(() -> new BeneficiaryException("Wallet not found"));
 
         bd.setWallet(wallet);
+
+        BeneficiaryDetails saved = bDao.save(bd);
+
         if (wallet.getBd() == null) {
             wallet.setBd(new ArrayList<>());
         }
-        wallet.getBd().add(bd);
+        if (!wallet.getBd().contains(saved)) {
+            wallet.getBd().add(saved);
+        }
 
-        return bDao.save(bd);
+        return saved;
     }
 
     @Override

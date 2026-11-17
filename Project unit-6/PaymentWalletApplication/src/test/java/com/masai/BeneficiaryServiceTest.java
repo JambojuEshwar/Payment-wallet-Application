@@ -145,4 +145,31 @@ public class BeneficiaryServiceTest {
 		assertEquals(1500.0, userWallet.getBalance(), "Viewing beneficiaries must never modify wallet balance");
 		verify(wDao, never()).save(any());
 	}
+
+	@Test
+	void testAddBeneficiary_DistinctMergedInstanceHandling() {
+		BeneficiaryDetails mergedInstance = new BeneficiaryDetails();
+		mergedInstance.setMobileNumber("9876543213");
+		mergedInstance.setName("FinalTest");
+		mergedInstance.setWallet(userWallet);
+
+		BeneficiaryDetails inputBd = new BeneficiaryDetails();
+		inputBd.setMobileNumber("9876543213");
+		inputBd.setName("FinalTest");
+		Wallet inputWallet = new Wallet();
+		inputWallet.setWalletId(1);
+		inputBd.setWallet(inputWallet);
+
+		when(bDao.existsById("9876543213")).thenReturn(false);
+		when(wDao.findById(1)).thenReturn(Optional.of(userWallet));
+		when(bDao.save(inputBd)).thenReturn(mergedInstance);
+
+		BeneficiaryDetails result = beneficiaryService.addBeneficiary(inputBd);
+
+		assertNotNull(result);
+		assertEquals("9876543213", result.getMobileNumber());
+		assertSame(mergedInstance, result);
+		assertTrue(userWallet.getBd().contains(mergedInstance));
+		assertEquals(1, userWallet.getBd().size());
+	}
 }
